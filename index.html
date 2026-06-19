@@ -95,7 +95,6 @@
                 return;
             }
 
-            // Menggunakan startsWith untuk memastikan hanya mencari yang awalannya cocok
             const filtered = masterSiswaData.filter(s => s.nama.toLowerCase().startsWith(keyword));
             
             if (filtered.length === 0) {
@@ -110,7 +109,7 @@
                     item.innerText = s.nama;
                     item.addEventListener('click', () => {
                         searchInput.value = s.nama;
-                        terpilihSiswa = s; // Menyimpan data siswa yang dipilih via klik
+                        terpilihSiswa = s;
                         searchResults.classList.add('hidden');
                     });
                     searchResults.appendChild(item);
@@ -119,14 +118,13 @@
             searchResults.classList.remove('hidden');
         });
 
-        // Menutup dropdown klik di luar input
         document.addEventListener('click', (e) => {
             if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
                 searchResults.classList.add('hidden');
             }
         });
 
-        // 3. Ketika Tombol Cari Ditekan (Otomatis deteksi teks jika pas)
+        // 3. Ketika Tombol Cari Ditekan
         btnCari.addEventListener('click', () => {
             const namaKetik = searchInput.value.trim().toLowerCase();
             
@@ -135,7 +133,6 @@
                 return;
             }
 
-            // Jika user belum klik dropdown, kita carikan yang namanya sama persis dengan yang diketik
             if (!terpilihSiswa) {
                 const cocok = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
                 if (cocok) {
@@ -146,83 +143,101 @@
                 }
             }
 
-            // Bersihkan form lama
             formEl.innerHTML = '';
             
-            // Loop kolom dari A sampai R untuk membangun input fields secara dinamis
             headersData.forEach((header, index) => {
                 const div = document.createElement('div');
-                div.className = 'flex flex-col';
-
-                const label = document.createElement('label');
-                label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
-                label.innerText = header;
-
                 let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
                 let input;
 
-                // KONDISI 1: Khusus untuk kolom "Ukuran" (Index 5 / Kolom F) dibuat Dropdown
-                if (header.toLowerCase() === 'ukuran') {
-                    input = document.createElement('select');
-                    input.name = `col_${index}`;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition cursor-pointer';
+                // KONDISI 1: Kolom berjenis Checkbox / Kotak Ceklis (Lapor Diri & Daftar Ulang)
+                if (header.toLowerCase() === 'lapor diri' || header.toLowerCase() === 'daftar ulang') {
+                    div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-lg mt-4';
                     
-                    const listUkuran = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-                    
-                    // Opsi default kosong
-                    const defaultOpt = document.createElement('option');
-                    defaultOpt.value = '';
-                    defaultOpt.innerText = '-- Pilih Ukuran Baju --';
-                    input.appendChild(defaultOpt);
-
-                    listUkuran.forEach(uk => {
-                        const opt = document.createElement('option');
-                        opt.value = uk;
-                        opt.innerText = uk;
-                        if (rawValue.toString().toUpperCase() === uk) {
-                            opt.selected = true;
-                        }
-                        input.appendChild(opt);
-                    });
-
-                // KONDISI 2: Khusus untuk kolom "Tanggal Lahir" (Index 9 / Kolom J) dibersihkan formatnya
-                } else if (header.toLowerCase() === 'tanggal lahir') {
                     input = document.createElement('input');
-                    input.type = 'date'; // Mengubah input menjadi tipe kalender
+                    input.type = 'checkbox';
                     input.name = `col_${index}`;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
+                    input.id = `check_${index}`;
+                    input.className = 'w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer';
                     
-                    // Jika datanya format ISO String panjang (ada huruf T), potong ambil YYYY-MM-DD saja
-                    if (rawValue && rawValue.toString().includes('T')) {
-                        input.value = rawValue.toString().split('T')[0];
-                    } else if (rawValue) {
-                        const d = new Date(rawValue);
-                        if (!isNaN(d.getTime())) {
-                            input.value = d.toISOString().split('T')[0];
-                        } else {
-                            input.value = rawValue;
-                        }
-                    } else {
-                        input.value = '';
+                    // Cek nilai dari sheet. Jika true / "true" / TRUE, maka otomatis tercentang
+                    if (rawValue === true || rawValue.toString().toLowerCase() === 'true') {
+                        input.checked = true;
                     }
 
-                // KONDISI 3: Untuk kolom teks biasa lainnya
+                    const label = document.createElement('label');
+                    label.htmlFor = `check_${index}`;
+                    label.className = 'text-sm font-bold text-gray-700 cursor-pointer select-none';
+                    label.innerText = header;
+
+                    div.appendChild(input);
+                    div.appendChild(label);
+
+                // KONDISI 2: Kolom "Ukuran" dibuat Dropdown
                 } else {
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.name = `col_${index}`;
-                    input.value = rawValue;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
+                    div.className = 'flex flex-col';
 
-                    // Kolom No (0) dan Nama (1) tetap dikunci agar baris data di Sheet tidak berantakan
-                    if (index === 0 || index === 1) {
-                        input.readOnly = true;
-                        input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                    const label = document.createElement('label');
+                    label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
+                    label.innerText = header;
+                    div.appendChild(label);
+
+                    if (header.toLowerCase() === 'ukuran') {
+                        input = document.createElement('select');
+                        input.name = `col_${index}`;
+                        input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition cursor-pointer';
+                        
+                        const listUkuran = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+                        const defaultOpt = document.createElement('option');
+                        defaultOpt.value = '';
+                        defaultOpt.innerText = '-- Pilih Ukuran Baju --';
+                        input.appendChild(defaultOpt);
+
+                        listUkuran.forEach(uk => {
+                            const opt = document.createElement('option');
+                            opt.value = uk;
+                            opt.innerText = uk;
+                            if (rawValue.toString().toUpperCase() === uk) {
+                                opt.selected = true;
+                            }
+                            input.appendChild(opt);
+                        });
+
+                    // KONDISI 3: Kolom "Tanggal Lahir" berupa Kalender
+                    } else if (header.toLowerCase() === 'tanggal lahir') {
+                        input = document.createElement('input');
+                        input.type = 'date';
+                        input.name = `col_${index}`;
+                        input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
+                        
+                        if (rawValue && rawValue.toString().includes('T')) {
+                            input.value = rawValue.toString().split('T')[0];
+                        } else if (rawValue) {
+                            const d = new Date(rawValue);
+                            if (!isNaN(d.getTime())) {
+                                input.value = d.toISOString().split('T')[0];
+                            } else {
+                                input.value = rawValue;
+                            }
+                        } else {
+                            input.value = '';
+                        }
+
+                    // KONDISI 4: Kolom Teks Biasa Lainnya
+                    } else {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.name = `col_${index}`;
+                        input.value = rawValue;
+                        input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
+
+                        if (index === 0 || index === 1) {
+                            input.readOnly = true;
+                            input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                        }
                     }
+                    div.appendChild(input);
                 }
-
-                div.appendChild(label);
-                div.appendChild(input);
                 formEl.appendChild(div);
             });
 
@@ -243,9 +258,15 @@
             showNotification('Sedang mengirimkan perubahan data ke Google Sheet...', 'blue');
 
             const payloadRowData = [];
-            headersData.forEach((_, index) => {
-                const inputVal = formEl.elements[`col_${index}`].value;
-                payloadRowData.push(inputVal);
+            headersData.forEach((header, index) => {
+                const element = formEl.elements[`col_${index}`];
+                
+                // Jika element berbentuk checkbox, ambil nilai true / false berdasarkan status ceklisnya
+                if (header.toLowerCase() === 'lapor diri' || header.toLowerCase() === 'daftar ulang') {
+                    payloadRowData.push(element.checked);
+                } else {
+                    payloadRowData.push(element.value);
+                }
             });
 
             const bodyRequest = {
@@ -265,7 +286,6 @@
                 if (res.status === 'SUCCESS') {
                     showNotification('Selamat! Data berhasil diperbarui di Google Sheet.', 'green');
                     
-                    // Update cache lokal biar data ter-refresh tanpa reload halaman
                     terpilihSiswa.dataLengkap = payloadRowData;
                     const idx = masterSiswaData.findIndex(s => s.rowNum === terpilihSiswa.rowNum);
                     if(idx !== -1) masterSiswaData[idx].dataLengkap = payloadRowData;
