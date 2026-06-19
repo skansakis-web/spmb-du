@@ -12,10 +12,6 @@
 <body class="bg-gray-100 min-h-screen font-sans">
 
     <div class="max-w-4xl mx-auto px-4 py-8">
-        <div class="bg-white rounded-xl shadow-md p-6 mb-6 border-l-4 border-blue-600">
-            <h1 class="text-2xl font-bold text-gray-800">Sistem Daftar Ulang Siswa</h1>
-            <p class="text-gray-600 text-sm mt-1">Cari nama siswa berdasarkan awalan huruf, periksa data, dan lakukan pembaruan jika diperlukan.</p>
-        </div>
 
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Nama Siswa :</label>
@@ -145,14 +141,22 @@
 
             formEl.innerHTML = '';
             
+            // Penampung sementara untuk elemen checkbox agar bisa ditaruh di paling bawah
+            const checkboxElements = [];
+
             headersData.forEach((header, index) => {
+                // Lewati kolom "No" (Index 0 / Kolom A) agar tidak tampil di form
+                if (header.toLowerCase() === 'no' || index === 0) {
+                    return; 
+                }
+
                 const div = document.createElement('div');
                 let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
                 let input;
 
-                // KONDISI 1: Kolom berjenis Checkbox / Kotak Ceklis (Lapor Diri & Daftar Ulang)
+                // KONDISI 1: Simpan dulu komponen Checkbox untuk diletakkan di akhir
                 if (header.toLowerCase() === 'lapor diri' || header.toLowerCase() === 'daftar ulang') {
-                    div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-lg mt-4';
+                    div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-lg md:col-span-1';
                     
                     input = document.createElement('input');
                     input.type = 'checkbox';
@@ -160,7 +164,6 @@
                     input.id = `check_${index}`;
                     input.className = 'w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer';
                     
-                    // Cek nilai dari sheet. Jika true / "true" / TRUE, maka otomatis tercentang
                     if (rawValue === true || rawValue.toString().toLowerCase() === 'true') {
                         input.checked = true;
                     }
@@ -172,8 +175,11 @@
 
                     div.appendChild(input);
                     div.appendChild(label);
+                    
+                    // Masukkan ke array penampung sementara
+                    checkboxElements.push(div);
 
-                // KONDISI 2: Kolom "Ukuran" dibuat Dropdown
+                // KONDISI 2: Komponen Input Form Biasa (Nama, Ruang, dll.)
                 } else {
                     div.className = 'flex flex-col';
 
@@ -182,6 +188,7 @@
                     label.innerText = header;
                     div.appendChild(label);
 
+                    // Dropdown Ukuran Baju
                     if (header.toLowerCase() === 'ukuran') {
                         input = document.createElement('select');
                         input.name = `col_${index}`;
@@ -203,7 +210,7 @@
                             input.appendChild(opt);
                         });
 
-                    // KONDISI 3: Kolom "Tanggal Lahir" berupa Kalender
+                    // Input Kalender untuk Tanggal Lahir
                     } else if (header.toLowerCase() === 'tanggal lahir') {
                         input = document.createElement('input');
                         input.type = 'date';
@@ -223,7 +230,7 @@
                             input.value = '';
                         }
 
-                    // KONDISI 4: Kolom Teks Biasa Lainnya
+                    // Teks biasa
                     } else {
                         input = document.createElement('input');
                         input.type = 'text';
@@ -231,14 +238,20 @@
                         input.value = rawValue;
                         input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
 
-                        if (index === 0 || index === 1) {
+                        // Kunci kolom nama agar datanya tidak diubah sembarangan
+                        if (header.toLowerCase() === 'nama' || index === 1) {
                             input.readOnly = true;
                             input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
                         }
                     }
                     div.appendChild(input);
+                    formEl.appendChild(div);
                 }
-                formEl.appendChild(div);
+            });
+
+            // Setelah semua komponen teks terbuat, render komponen checkbox di baris paling bawah
+            checkboxElements.forEach(cbDiv => {
+                formEl.appendChild(cbDiv);
             });
 
             formContainer.classList.remove('hidden');
@@ -259,9 +272,14 @@
 
             const payloadRowData = [];
             headersData.forEach((header, index) => {
+                // Khusus untuk Kolom No (Index 0), tetap ambil nilai aslinya dari Google Sheet tanpa perubahan form
+                if (header.toLowerCase() === 'no' || index === 0) {
+                    payloadRowData.push(terpilihSiswa.dataLengkap[0]);
+                    return;
+                }
+
                 const element = formEl.elements[`col_${index}`];
                 
-                // Jika element berbentuk checkbox, ambil nilai true / false berdasarkan status ceklisnya
                 if (header.toLowerCase() === 'lapor diri' || header.toLowerCase() === 'daftar ulang') {
                     payloadRowData.push(element.checked);
                 } else {
