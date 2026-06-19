@@ -123,6 +123,15 @@
             let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
             let input;
 
+            // Jika ini kolom Nama, buat melebar 2 kolom penuh pada layar medium/besar
+            if (headerName.toLowerCase() === 'nama') {
+                div.className = 'flex flex-col md:col-span-2';
+            } else if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
+                // Jangan diset flex-col dulu di sini agar penataan checkbox konsisten
+            } else {
+                div.className = 'flex flex-col';
+            }
+
             // KONDISI CHECKBOX: Lapor Diri & Daftar Ulang
             if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
                 div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-sm h-[42px] mt-6';
@@ -147,8 +156,6 @@
 
             // KONDISI INPUT SELAIN CHECKBOX
             } else {
-                div.className = 'flex flex-col';
-
                 const label = document.createElement('label');
                 label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
                 label.innerText = headerName;
@@ -215,7 +222,7 @@
             return div;
         }
 
-        // 3. Ketika Tombol Cari Ditekan (Menyusun struktur form secara urut kustom)
+        // 3. Ketika Tombol Cari Ditekan (Menyusun susunan form kustom terbaru)
         btnCari.addEventListener('click', () => {
             const namaKetik = searchInput.value.trim().toLowerCase();
             
@@ -242,15 +249,21 @@
                 headerMap[header.toLowerCase()] = index;
             });
 
-            // Tentukan urutan prioritas kustom yang diinginkan Mas Angga
+            // Susunan urutan kustom terbaru yang diminta Mas Angga
             const customOrder = [
-                'nama', 'nisn',
+                'lapor diri', 'daftar ulang',
+                'nama',
+                'nisn', 'ruang',
                 'jurusan', 'jalur',
-                'ruang', 'ukuran',
-                'lapor diri', 'daftar ulang'
+                'jenis kelamin', 'ukuran',
+                'sekolah asal', 'tahun lulus',
+                'tempat lahir', 'tanggal lahir',
+                'rt', 'rw',
+                'desa/kelurahan', 'kecamatan',
+                'kabupaten/kota', 'provinsi'
             ];
 
-            // 1. Render kolom prioritas utama terlebih dahulu
+            // 1. Render kolom berdasarkan urutan kustom terstruktur
             customOrder.forEach(headerName => {
                 if (headerMap[headerName] !== undefined) {
                     const el = createInputElement(headersData[headerMap[headerName]], headerMap[headerName]);
@@ -258,7 +271,7 @@
                 }
             });
 
-            // 2. Render sisa kolom lainnya secara otomatis di bawahnya (Kecuali kolom 'no' dan yang sudah masuk list kustom)
+            // 2. Antisipasi jika ada sisa kolom lain di luar list (kecuali kolom 'no')
             headersData.forEach((header, index) => {
                 const nameLower = header.toLowerCase();
                 if (nameLower !== 'no' && !customOrder.includes(nameLower)) {
@@ -287,7 +300,6 @@
             headersData.forEach((header, index) => {
                 const nameLower = header.toLowerCase();
                 
-                // Jika kolom 'no', simpan kembali nilai aslinya tanpa membaca input form (karena tidak dirender)
                 if (nameLower === 'no') {
                     payloadRowData.push(terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '');
                 } else {
