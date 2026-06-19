@@ -13,9 +13,9 @@
 
     <div class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-white rounded-sm shadow-md p-6 mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Nama Siswa :</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Siswa :</label>
             <div class="relative">
-                <input type="text" id="searchInput" placeholder="Ketik nama siswa di sini..." 
+                <input type="text" id="searchInput" placeholder="Ketik nama siswa ..." 
                        class="w-full px-4 py-3 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700">
                 
                 <div id="searchResults" class="search-results absolute z-10 w-full bg-white border border-gray-200 rounded-sm mt-1 shadow-lg hidden">
@@ -59,7 +59,7 @@
 
 
         window.addEventListener('DOMContentLoaded', () => {
-            showNotification('Sedang memuat daftar nama siswa', 'blue');
+            showNotification('...', 'blue');
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(data => {
@@ -69,7 +69,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    showNotification('Gagal memuat data dari Google Sheet. Periksa konfigurasi deploy Web App kamu.', 'red');
+                    showNotification('Gagal memuat data', 'red');
                 });
         });
 
@@ -118,11 +118,11 @@
             let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
             let input;
 
-            // Jika ini kolom Nama, buat melebar 2 kolom penuh pada layar medium/besar
+
             if (headerName.toLowerCase() === 'nama') {
                 div.className = 'flex flex-col md:col-span-2';
             } else if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
-                // Jangan diset flex-col dulu di sini agar penataan checkbox konsisten
+
             } else {
                 div.className = 'flex flex-col';
             }
@@ -229,12 +229,12 @@
             return div;
         }
 
-        // 3. Ketika Tombol Cari Ditekan (Menyusun susunan form kustom terbaru)
+
         btnCari.addEventListener('click', () => {
             const namaKetik = searchInput.value.trim().toLowerCase();
             
             if (namaKetik === '') {
-                alert('Silakan ketik nama siswa terlebih dahulu.');
+                alert('ketik nama.');
                 return;
             }
 
@@ -243,20 +243,20 @@
                 if (cocok) {
                     terpilihSiswa = cocok;
                 } else {
-                    alert('Nama yang kamu ketik tidak cocok dengan data siswa mana pun. Silakan pilih dari saran dropdown.');
+                    alert('Nama tidak ditemukan.');
                     return;
                 }
             }
 
             formEl.innerHTML = '';
 
-            // Petakan index kolom berdasarkan susunan nama header asli di sheet
+
             const headerMap = {};
             headersData.forEach((header, index) => {
                 headerMap[header.toLowerCase()] = index;
             });
 
-            // Susunan urutan kustom terbaru yang diminta Mas Angga
+
             const customOrder = [
                 'lapor diri', 'daftar ulang',
                 'nama',
@@ -270,7 +270,7 @@
                 'kabupaten/kota', 'provinsi'
             ];
 
-            // 1. Render kolom berdasarkan urutan kustom terstruktur
+
             customOrder.forEach(headerName => {
                 if (headerMap[headerName] !== undefined) {
                     const el = createInputElement(headersData[headerMap[headerName]], headerMap[headerName]);
@@ -278,7 +278,7 @@
                 }
             });
 
-            // 2. Antisipasi jika ada sisa kolom lain di luar list (kecuali kolom 'no')
+
             headersData.forEach((header, index) => {
                 const nameLower = header.toLowerCase();
                 if (nameLower !== 'no' && !customOrder.includes(nameLower)) {
@@ -291,11 +291,11 @@
             formContainer.scrollIntoView({ behavior: 'smooth' });
         });
 
-        // 4. Ketika Tombol Simpan Ditekan
+
         btnSimpan.addEventListener('click', () => {
             if (!terpilihSiswa) return;
 
-            if(!confirm('Apakah kamu yakin ingin menyimpan perubahan data untuk siswa ' + terpilihSiswa.nama + '?')) {
+            if(!confirm('Simpan perubahan data untuk siswa ' + terpilihSiswa.nama + '?')) {
                 return;
             }
 
@@ -334,7 +334,7 @@
                 btnSimpan.innerText = 'Simpan Semua Perubahan';
                 
                 if (res.status === 'SUCCESS') {
-                    showNotification('Selamat! Data berhasil diperbarui di Google Sheet.', 'green');
+                    showNotification('Data Tersimpan.', 'green');
                     
                     terpilihSiswa.dataLengkap = payloadRowData;
                     const idx = masterSiswaData.findIndex(s => s.rowNum === terpilihSiswa.rowNum);
@@ -354,7 +354,7 @@
                 console.error(err);
                 btnSimpan.disabled = false;
                 btnSimpan.innerText = 'Simpan Semua Perubahan';
-                showNotification('Terjadi kesalahan jaringan saat mencoba menyimpan data.', 'red');
+                showNotification('Terjadi kesalahan.', 'red');
             });
         });
 
