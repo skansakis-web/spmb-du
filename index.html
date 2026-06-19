@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Daftar Ulang Siswa</title>
+    <!-- Tailwind CSS untuk tampilan modern -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .search-results { max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6 border-l-4 border-blue-600">
+            <h1 class="text-2xl font-bold text-gray-800">Sistem Daftar Ulang Siswa</h1>
+            <p class="text-gray-600 text-sm mt-1">Cari nama siswa, periksa data, dan lakukan pembaruan jika diperlukan.</p>
+        </div>
+
+        <!-- Area Pencarian -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Nama Siswa :</label>
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="Ketik nama siswa di sini..." 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700">
+                
+                <!-- Dropdown Hasil Pencarian Karakter -->
+                <div id="searchResults" class="search-results absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg hidden">
+                    <!-- Data siswa hasil ketikan muncul di sini -->
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="btnCari" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition shadow-sm cursor-pointer">
+                    Buka Data Form
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Notifikasi -->
+        <div id="notif" class="hidden p-4 mb-6 rounded-lg text-sm font-medium"></div>
+
+        <!-- Form Edit Data (Akan muncul setelah menekan tombol Cari) -->
+        <div id="formContainer" class="hidden bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Formulir Data Siswa</h2>
+            
+            <form id="daftarUlangForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Data akan di-inject lewat JavaScript secara dinamis -->
+            </form>
+
+            <div class="mt-8 pt-4 border-t border-gray-200 flex justify-end">
+                <button id="btnSimpan" class="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-lg transition shadow-md cursor-pointer">
+                    Simpan Semua Perubahan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // PASTE URL WEB APP APPS SCRIPT KAMU DI SINI
+        // ==========================================
+        const WEB_APP_URL = "JANGAN_LUPA_GANTI_DENGAN_URL_WEB_APP_KAMU";
+
+        let masterSiswaData = [];
+        let headersData = [];
+        let terpilihSiswa = null;
+
+        // Element Selectors
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const btnCari = document.getElementById('btnCari');
+        const formContainer = document.getElementById('formContainer');
+        const formEl = document.getElementById('daftarUlangForm');
+        const btnSimpan = document.getElementById('btnSimpan');
+        const notif = document.getElementById('notif');
+
+        // 1. Ambil data nama siswa dari Google Sheet saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            showNotification('Sedang memuat daftar nama siswa, mohon tunggu...', 'blue');
+            fetch(WEB_APP_URL)
+                .then(res => res.json())
+                .then(data => {
+                    masterSiswaData = data.siswa;
+                    headersData = data.headers;
+                    hideNotification();
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification('Gagal memuat data dari Google Sheet. Periksa konfigurasi deploy Web App kamu.', 'red');
+                });
+        });
+
+        // 2. Logika Dropdown Search yang Bisa Diketik
+        searchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase().trim();
+            searchResults.innerHTML = '';
+            
+            if (keyword === '') {
+                searchResults.classList.add('hidden');
+                return;
+            }
+
+            const filtered = masterSiswaData.filter(s => s.nama.toLowerCase().includes(keyword));
+            
+            if (filtered.length === 0) {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-3 text-sm text-gray-500 italic';
+                item.innerText = 'Nama tidak ditemukan';
+                searchResults.appendChild(item);
+            } else {
+                filtered.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = 'px-4 py-2.5 text-sm hover:bg-blue-50 text-gray-700 cursor-pointer transition';
+                    item.innerText = s.nama;
+                    item.addEventListener('click', () => {
+                        searchInput.value = s.nama;
+                        terpilihSiswa = s;
+                        searchResults.classList.add('hidden');
+                    });
+                    searchResults.appendChild(item);
+                });
+            }
+            searchResults.classList.remove('hidden');
+        });
+
+        // Menutup dropdown klik di luar input
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+
+        // 3. Ketika Tombol Cari Ditekan: Buat Input Form secara Otomatis
+        btnCari.addEventListener('click', () => {
+            if (!terpilihSiswa) {
+                // Alternatif jika user ketik pas tanpa klik dropdown
+                const namaKetik = searchInput.value.trim().toLowerCase();
+                const cocok = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
+                if (cocok) {
+                    terpilihSiswa = cocok;
+                } else {
+                    alert('Silakan pilih nama siswa yang valid dari daftar terlebih dahulu.');
+                    return;
+                }
+            }
+
+            // Bersihkan form lama
+            formEl.innerHTML = '';
+            
+            // Loop kolom dari A sampai R untuk membangun input fields
+            headersData.forEach((header, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex flex-col';
+
+                const label = document.createElement('label');
+                label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
+                label.innerText = header;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = `col_${index}`;
+                input.value = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
+                input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
+
+                // Kolom No (Index 0) dan Nama (Index 1) kita kunci agar tidak sengaja diubah strukturnya di form
+                if (index === 0 || index === 1) {
+                    input.readOnly = true;
+                    input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                }
+
+                div.appendChild(label);
+                div.appendChild(input);
+                formEl.appendChild(div);
+            });
+
+            formContainer.classList.remove('hidden');
+            formContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 4. Ketika Tombol Simpan Ditekan: Kirim kembali perubahan ke Apps Script
+        btnSimpan.addEventListener('click', () => {
+            if (!terpilihSiswa) return;
+
+            if(!confirm('Apakah kamu yakin ingin menyimpan perubahan data untuk siswa ' + terpilihSiswa.nama + '?')) {
+                return;
+            }
+
+            btnSimpan.disabled = true;
+            btnSimpan.innerText = 'Menyimpan...';
+            showNotification('Sedang mengirimkan perubahan data ke Google Sheet...', 'blue');
+
+            // Kumpulkan kembali data dari input form menjadi satu array terurut
+            const payloadRowData = [];
+            headersData.forEach((_, index) => {
+                const inputVal = formEl.elements[`col_${index}`].value;
+                payloadRowData.push(inputVal);
+            });
+
+            const bodyRequest = {
+                rowNum: terpilihSiswa.rowNum,
+                rowData: payloadRowData
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify(bodyRequest)
+            })
+            .then(res => res.json())
+            .then(res => {
+                btnSimpan.disabled = false;
+                btnSimpan.innerText = 'Simpan Semua Perubahan';
+                
+                if (res.status === 'SUCCESS') {
+                    showNotification('Selamat! Data berhasil diperbarui di Google Sheet.', 'green');
+                    
+                    // Update data lokal cache biar kalau di-cari lagi datanya sudah yang baru
+                    terpilihSiswa.dataLengkap = payloadRowData;
+                    const idx = masterSiswaData.findIndex(s => s.rowNum === terpilihSiswa.rowNum);
+                    if(idx !== -1) masterSiswaData[idx].dataLengkap = payloadRowData;
+                    
+                    // Beri jeda lalu sembunyikan form
+                    setTimeout(() => {
+                        formContainer.classList.add('hidden');
+                        searchInput.value = '';
+                        terpilihSiswa = null;
+                        hideNotification();
+                    }, 3000);
+                } else {
+                    showNotification('Gagal memperbarui data: ' + res.message, 'red');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btnSimpan.disabled = false;
+                btnSimpan.innerText = 'Simpan Semua Perubahan';
+                showNotification('Terjadi kesalahan jaringan saat mencoba menyimpan data.', 'red');
+            });
+        });
+
+        // Helper Fungsi Notifikasi Tampilan
+        function showNotification(text, color) {
+            notif.innerText = text;
+            notif.className = 'p-4 mb-6 rounded-lg text-sm font-medium block ';
+            if(color === 'blue') notif.classList.add('bg-blue-50', 'text-blue-700', 'border', 'border-blue-200');
+            if(color === 'green') notif.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+            if(color === 'red') notif.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+        }
+
+        function hideNotification() {
+            notif.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
