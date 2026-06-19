@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Daftar Ulang Siswa</title>
-    <!-- Tailwind CSS untuk tampilan modern -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .search-results { max-height: 200px; overflow-y: auto; }
@@ -13,23 +12,19 @@
 <body class="bg-gray-100 min-h-screen font-sans">
 
     <div class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Header -->
         <div class="bg-white rounded-xl shadow-md p-6 mb-6 border-l-4 border-blue-600">
             <h1 class="text-2xl font-bold text-gray-800">Sistem Daftar Ulang Siswa</h1>
-            <p class="text-gray-600 text-sm mt-1">Cari nama siswa, periksa data, dan lakukan pembaruan jika diperlukan.</p>
+            <p class="text-gray-600 text-sm mt-1">Cari nama siswa berdasarkan awalan huruf, periksa data, dan lakukan pembaruan jika diperlukan.</p>
         </div>
 
-        <!-- Area Pencarian -->
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Nama Siswa :</label>
             <div class="relative">
                 <input type="text" id="searchInput" placeholder="Ketik nama siswa di sini..." 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700">
                 
-                <!-- Dropdown Hasil Pencarian Karakter -->
                 <div id="searchResults" class="search-results absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg hidden">
-                    <!-- Data siswa hasil ketikan muncul di sini -->
-                </div>
+                    </div>
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="btnCari" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition shadow-sm cursor-pointer">
@@ -38,16 +33,13 @@
             </div>
         </div>
 
-        <!-- Alert Notifikasi -->
         <div id="notif" class="hidden p-4 mb-6 rounded-lg text-sm font-medium"></div>
 
-        <!-- Form Edit Data (Akan muncul setelah menekan tombol Cari) -->
         <div id="formContainer" class="hidden bg-white rounded-xl shadow-md p-6">
             <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Formulir Data Siswa</h2>
             
             <form id="daftarUlangForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Data akan di-inject lewat JavaScript secara dinamis -->
-            </form>
+                </form>
 
             <div class="mt-8 pt-4 border-t border-gray-200 flex justify-end">
                 <button id="btnSimpan" class="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-lg transition shadow-md cursor-pointer">
@@ -61,7 +53,7 @@
         // ==========================================
         // PASTE URL WEB APP APPS SCRIPT KAMU DI SINI
         // ==========================================
-        const WEB_APP_URL = "const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBaWKlzKSJwIV0g0KQvZpGEdwRj6VSsz97Kk8YhXKYdm28DIpZ3VVEEsb1GITNB9KO/exec";";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBaWKlzKSJwIV0g0KQvZpGEdwRj6VSsz97Kk8YhXKYdm28DIpZ3VVEEsb1GITNB9KO/exec";
 
         let masterSiswaData = [];
         let headersData = [];
@@ -92,17 +84,19 @@
                 });
         });
 
-        // 2. Logika Dropdown Search yang Bisa Diketik
+        // 2. Logika Dropdown Search (HANYA MENAMPILKAN YANG BERAWALAN HURUF TERSEBUT)
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase().trim();
             searchResults.innerHTML = '';
+            terpilihSiswa = null; // Reset setiap ada ketikan baru
             
             if (keyword === '') {
                 searchResults.classList.add('hidden');
                 return;
             }
 
-            const filtered = masterSiswaData.filter(s => s.nama.toLowerCase().includes(keyword));
+            // Menggunakan startsWith untuk memastikan hanya mencari yang awalannya cocok
+            const filtered = masterSiswaData.filter(s => s.nama.toLowerCase().startsWith(keyword));
             
             if (filtered.length === 0) {
                 const item = document.createElement('div');
@@ -116,7 +110,7 @@
                     item.innerText = s.nama;
                     item.addEventListener('click', () => {
                         searchInput.value = s.nama;
-                        terpilihSiswa = s;
+                        terpilihSiswa = s; // Menyimpan data siswa yang dipilih via klik
                         searchResults.classList.add('hidden');
                     });
                     searchResults.appendChild(item);
@@ -132,16 +126,22 @@
             }
         });
 
-        // 3. Ketika Tombol Cari Ditekan: Buat Input Form secara Otomatis
+        // 3. Ketika Tombol Cari Ditekan (Otomatis deteksi teks jika pas)
         btnCari.addEventListener('click', () => {
+            const namaKetik = searchInput.value.trim().toLowerCase();
+            
+            if (namaKetik === '') {
+                alert('Silakan ketik nama siswa terlebih dahulu.');
+                return;
+            }
+
+            // Jika user belum klik dropdown, kita carikan yang namanya sama persis dengan yang diketik
             if (!terpilihSiswa) {
-                // Alternatif jika user ketik pas tanpa klik dropdown
-                const namaKetik = searchInput.value.trim().toLowerCase();
                 const cocok = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
                 if (cocok) {
                     terpilihSiswa = cocok;
                 } else {
-                    alert('Silakan pilih nama siswa yang valid dari daftar terlebih dahulu.');
+                    alert('Nama yang kamu ketik tidak cocok dengan data siswa mana pun. Silakan pilih dari saran dropdown.');
                     return;
                 }
             }
@@ -149,7 +149,7 @@
             // Bersihkan form lama
             formEl.innerHTML = '';
             
-            // Loop kolom dari A sampai R untuk membangun input fields
+            // Loop kolom dari A sampai R untuk membangun input fields secara dinamis
             headersData.forEach((header, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex flex-col';
@@ -164,7 +164,7 @@
                 input.value = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
                 input.className = 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition';
 
-                // Kolom No (Index 0) dan Nama (Index 1) kita kunci agar tidak sengaja diubah strukturnya di form
+                // Kolom No (0) and Nama (1) dikunci agar datanya aman dan tidak tergeser row-nya
                 if (index === 0 || index === 1) {
                     input.readOnly = true;
                     input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
@@ -179,7 +179,7 @@
             formContainer.scrollIntoView({ behavior: 'smooth' });
         });
 
-        // 4. Ketika Tombol Simpan Ditekan: Kirim kembali perubahan ke Apps Script
+        // 4. Ketika Tombol Simpan Ditekan
         btnSimpan.addEventListener('click', () => {
             if (!terpilihSiswa) return;
 
@@ -191,7 +191,6 @@
             btnSimpan.innerText = 'Menyimpan...';
             showNotification('Sedang mengirimkan perubahan data ke Google Sheet...', 'blue');
 
-            // Kumpulkan kembali data dari input form menjadi satu array terurut
             const payloadRowData = [];
             headersData.forEach((_, index) => {
                 const inputVal = formEl.elements[`col_${index}`].value;
@@ -215,12 +214,11 @@
                 if (res.status === 'SUCCESS') {
                     showNotification('Selamat! Data berhasil diperbarui di Google Sheet.', 'green');
                     
-                    // Update data lokal cache biar kalau di-cari lagi datanya sudah yang baru
+                    // Update cache lokal biar kalau dicari ulang, datanya langsung yang baru
                     terpilihSiswa.dataLengkap = payloadRowData;
                     const idx = masterSiswaData.findIndex(s => s.rowNum === terpilihSiswa.rowNum);
                     if(idx !== -1) masterSiswaData[idx].dataLengkap = payloadRowData;
                     
-                    // Beri jeda lalu sembunyikan form
                     setTimeout(() => {
                         formContainer.classList.add('hidden');
                         searchInput.value = '';
@@ -239,7 +237,6 @@
             });
         });
 
-        // Helper Fungsi Notifikasi Tampilan
         function showNotification(text, color) {
             notif.innerText = text;
             notif.className = 'p-4 mb-6 rounded-lg text-sm font-medium block ';
