@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Daftar Ulang Siswa</title>
+    <title>Daftar Ulang Siswa</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .search-results { max-height: 200px; overflow-y: auto; }
@@ -23,7 +23,7 @@
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="btnCari" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-sm transition shadow-sm cursor-pointer">
-                    Buka Data Form
+                    Buka
                 </button>
             </div>
         </div>
@@ -36,23 +36,19 @@
 
             <div class="mt-8 pt-4 border-t border-gray-200 flex justify-end">
                 <button id="btnSimpan" class="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-sm transition shadow-md cursor-pointer">
-                    Simpan Semua Perubahan
+                    Simpan
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // URL WEB APP APPS SCRIPT KAMU
-        // ==========================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBaWKlzKSJwIV0g0KQvZpGEdwRj6VSsz97Kk8YhXKYdm28DIpZ3VVEEsb1GITNB9KO/exec";
 
         let masterSiswaData = [];
         let headersData = [];
         let terpilihSiswa = null;
 
-        // Element Selectors
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
         const btnCari = document.getElementById('btnCari');
@@ -61,9 +57,9 @@
         const btnSimpan = document.getElementById('btnSimpan');
         const notif = document.getElementById('notif');
 
-        // 1. Ambil data nama siswa dari Google Sheet saat halaman dimuat
+
         window.addEventListener('DOMContentLoaded', () => {
-            showNotification('Sedang memuat daftar nama siswa, mohon tunggu...', 'blue');
+            showNotification('Sedang memuat daftar nama siswa', 'blue');
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(data => {
@@ -77,7 +73,6 @@
                 });
         });
 
-        // 2. Logika Dropdown Search (HANYA MENAMPILKAN YANG BERAWALAN HURUF TERSEBUT)
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase().trim();
             searchResults.innerHTML = '';
@@ -117,7 +112,7 @@
             }
         });
 
-        // Helper untuk membuat elemen input dinamis berdasarkan nama header
+
         function createInputElement(headerName, index) {
             const div = document.createElement('div');
             let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
@@ -132,7 +127,7 @@
                 div.className = 'flex flex-col';
             }
 
-            // KONDISI CHECKBOX: Lapor Diri & Daftar Ulang
+
             if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
                 div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-sm h-[42px] mt-6';
                 
@@ -154,14 +149,14 @@
                 div.appendChild(input);
                 div.appendChild(label);
 
-            // KONDISI INPUT SELAIN CHECKBOX
+
             } else {
                 const label = document.createElement('label');
                 label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
                 label.innerText = headerName;
                 div.appendChild(label);
 
-                // Dropdown Ukuran Kaos/Baju
+
                 if (headerName.toLowerCase() === 'ukuran') {
                     input = document.createElement('select');
                     input.name = `col_${index}`;
@@ -183,7 +178,7 @@
                         input.appendChild(opt);
                     });
 
-                // Input Tanggal Lahir (Kalender)
+
                 } else if (headerName.toLowerCase() === 'tanggal lahir') {
                     input = document.createElement('input');
                     input.type = 'date';
@@ -203,7 +198,7 @@
                         input.value = '';
                     }
 
-                // Input Teks Standar
+
                 } else {
                     input = document.createElement('input');
                     input.type = 'text';
@@ -211,8 +206,20 @@
                     input.value = rawValue;
                     input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition h-[42px]';
 
-                    // Kunci kolom nama agar tetap aman
+
                     if (headerName.toLowerCase() === 'nama') {
+                        input.readOnly = true;
+                        input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                    }
+                    if (headerName.toLowerCase() === 'ruang') {
+                        input.readOnly = true;
+                        input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                    }
+                    if (headerName.toLowerCase() === 'jalur') {
+                        input.readOnly = true;
+                        input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
+                    }
+                    if (headerName.toLowerCase() === 'jurusan') {
                         input.readOnly = true;
                         input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
                     }
