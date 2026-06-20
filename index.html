@@ -331,7 +331,7 @@
             .then(res => res.json())
             .then(res => {
                 btnSimpan.disabled = false;
-                btnSimpan.innerText = 'Simpan Semua Perubahan';
+                btnSimpan.innerText = 'Simpan';
                 
                 if (res.status === 'SUCCESS') {
                     showNotification('Data Tersimpan.', 'green');
