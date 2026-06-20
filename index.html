@@ -314,7 +314,11 @@
                     if (nameLower === 'lapor diri' || nameLower === 'daftar ulang') {
                         payloadRowData.push(element.checked);
                     } else {
-                        payloadRowData.push(element.value);
+                        if (nameLower === 'nisn') {
+                            payloadRowData.push("'" + element.value);
+                        } else {
+                            payloadRowData.push(element.value);
+                        }
                     }
                 }
             });
