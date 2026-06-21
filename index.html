@@ -115,14 +115,16 @@
             let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
             let input;
 
-            if (headerName.toLowerCase() === 'nama') {
+            const nameLower = headerName.toLowerCase();
+
+            if (nameLower === 'nama') {
                 div.className = 'flex flex-col md:col-span-2';
-            } else if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
+            } else if (nameLower === 'lapor diri' || nameLower === 'daftar ulang' || nameLower === 'grup whatsapp') {
             } else {
                 div.className = 'flex flex-col';
             }
 
-            if (headerName.toLowerCase() === 'lapor diri' || headerName.toLowerCase() === 'daftar ulang') {
+            if (nameLower === 'lapor diri' || nameLower === 'daftar ulang' || nameLower === 'grup whatsapp') {
                 div.className = 'flex flex-row items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-sm h-[42px] mt-6';
                 
                 input = document.createElement('input');
@@ -149,7 +151,7 @@
                 label.innerText = headerName;
                 div.appendChild(label);
 
-                if (headerName.toLowerCase() === 'ukuran') {
+                if (nameLower === 'ukuran') {
                     input = document.createElement('select');
                     input.name = `col_${index}`;
                     input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition cursor-pointer h-[42px]';
@@ -170,7 +172,7 @@
                         input.appendChild(opt);
                     });
 
-                } else if (headerName.toLowerCase() === 'tanggal lahir') {
+                } else if (nameLower === 'tanggal lahir') {
                     input = document.createElement('input');
                     input.type = 'date';
                     input.name = `col_${index}`;
@@ -193,10 +195,10 @@
                     input = document.createElement('input');
                     input.type = 'text';
                     input.name = `col_${index}`;
-                    input.value = headerName.toLowerCase() === 'nisn' && rawValue.toString().startsWith("'") ? rawValue.toString().substring(1) : rawValue;
+                    input.value = nameLower === 'nisn' && rawValue.toString().startsWith("'") ? rawValue.toString().substring(1) : rawValue;
                     input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition h-[42px]';
 
-                    if (headerName.toLowerCase() === 'nama') {
+                    if (nameLower === 'nama' || nameLower === 'nisn' || nameLower === 'ruang' || nameLower === 'jurusan' || nameLower === 'jalur') {
                         input.readOnly = true;
                         input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
                     }
@@ -233,6 +235,7 @@
 
             const customOrder = [
                 'lapor diri', 'daftar ulang',
+                'grup whatsapp', 'nomor hp',
                 'nama',
                 'nisn', 'ruang',
                 'jurusan', 'jalur',
@@ -247,14 +250,6 @@
             customOrder.forEach(headerName => {
                 if (headerMap[headerName] !== undefined) {
                     const el = createInputElement(headersData[headerMap[headerName]], headerMap[headerName]);
-                    formEl.appendChild(el);
-                }
-            });
-
-            headersData.forEach((header, index) => {
-                const nameLower = header.toLowerCase();
-                if (nameLower !== 'no' && !customOrder.includes(nameLower)) {
-                    const el = createInputElement(header, index);
                     formEl.appendChild(el);
                 }
             });
@@ -282,7 +277,10 @@
                     payloadRowData.push(terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '');
                 } else {
                     const element = formEl.elements[`col_${index}`];
-                    if (nameLower === 'lapor diri' || nameLower === 'daftar ulang') {
+                    
+                    if (!element) {
+                        payloadRowData.push(terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '');
+                    } else if (nameLower === 'lapor diri' || nameLower === 'daftar ulang' || nameLower === 'grup whatsapp') {
                         payloadRowData.push(element.checked);
                     } else if (nameLower === 'nisn') {
                         let cleanNisn = element.value.toString().trim();
@@ -332,7 +330,7 @@
             });
         });
 
-        fn = showNotification = (text, color) => {
+        showNotification = (text, color) => {
             notif.innerText = text;
             notif.className = 'p-4 mb-6 rounded-sm text-sm font-medium block ';
             if(color === 'blue') notif.classList.add('bg-blue-50', 'text-blue-700', 'border', 'border-blue-200');
@@ -340,7 +338,7 @@
             if(color === 'red') notif.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
         }
 
-        fn = hideNotification = () => {
+        hideNotification = () => {
             notif.classList.add('hidden');
         }
     </script>
