@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .search-results { max-height: 200px; overflow-y: auto; }
+        .input-empty { background-color: #fee2e2 !important; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
@@ -110,6 +111,14 @@
             }
         });
 
+        function checkEmptyStatus(element) {
+            if (element.value.trim() === '') {
+                element.classList.add('input-empty');
+            } else {
+                element.classList.remove('input-empty');
+            }
+        }
+
         function createInputElement(headerName, index) {
             const div = document.createElement('div');
             let rawValue = terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '';
@@ -203,6 +212,13 @@
                         input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
                     }
                 }
+
+                if (!input.readOnly) {
+                    checkEmptyStatus(input);
+                    input.addEventListener('input', (e) => checkEmptyStatus(e.target));
+                    input.addEventListener('change', (e) => checkEmptyStatus(e.target));
+                }
+                
                 div.appendChild(input);
             }
             return div;
