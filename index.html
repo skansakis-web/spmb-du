@@ -86,16 +86,21 @@
         });
 
         function renderDashboardStats(stats) {
-            if (!stats) return;
+            if (!stats || !stats.kelompokJurusan) return;
             
-            let htmlGabungan = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Nama Jurusan / Jalur</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
+            let htmlGabungan = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Jurusan / Jalur</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
             
-            for (let key in stats.jurusan) {
-                htmlGabungan += `<tr class="border-b"><td class="py-2 font-medium text-gray-700">${key}</td><td class="py-2 text-right font-bold text-blue-600">${stats.jurusan[key].lapor} <span class="text-gray-400 font-normal">/ ${stats.jurusan[key].total}</span></td></tr>`;
-            }
-            
-            for (let key in stats.jalur) {
-                htmlGabungan += `<tr class="border-b last:border-none"><td class="py-2 font-medium text-gray-600 italic">${key}</td><td class="py-2 text-right font-bold text-blue-600">${stats.jalur[key].lapor} <span class="text-gray-400 font-normal">/ ${stats.jalur[key].total}</span></td></tr>`;
+            for (let jrsName in stats.kelompokJurusan) {
+                let dataJurusan = stats.kelompokJurusan[jrsName];
+                
+                // Baris Utama Jurusan (Cetak Tebal & Latar Belakang Sedikit Abu Ringan)
+                htmlGabungan += `<tr class="bg-gray-50 border-b font-bold text-gray-800"><td class="py-2 px-1 text-sm uppercase">${jrsName}</td><td class="py-2 px-1 text-right text-sm text-blue-700">${dataJurusan.lapor} / ${dataJurusan.total}</td></tr>`;
+                
+                // Loop Jalur internal di dalam Jurusan ini (Menjorok ke dalam / Indent)
+                for (let jlrName in dataJurusan.jalur) {
+                    let dataJalur = dataJurusan.jalur[jlrName];
+                    htmlGabungan += `<tr class="border-b last:border-none"><td class="py-1.5 pl-6 text-gray-600 italic font-medium">${jlrName}</td><td class="py-1.5 pr-1 text-right font-bold text-blue-600">${dataJalur.lapor} <span class="text-gray-400 font-normal">/ ${dataJalur.total}</span></td></tr>`;
+                }
             }
             htmlGabungan += '</tbody></table>';
 
