@@ -30,14 +30,10 @@
 
         <div id="notif" class="hidden p-4 mb-6 rounded-sm text-sm font-medium"></div>
 
-        <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 hidden">
+        <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 hidden">
             <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Jurusan</h3>
-                <div id="statsJurusan" class="text-xs space-y-2"></div>
-            </div>
-            <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Jalur</h3>
-                <div id="statsJalur" class="text-xs space-y-2"></div>
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Jurusan & Jalur</h3>
+                <div id="statsGabungan" class="text-xs space-y-2"></div>
             </div>
             <div class="bg-white p-4 shadow-md rounded-sm">
                 <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Ruang</h3>
@@ -92,18 +88,25 @@
         function renderDashboardStats(stats) {
             if (!stats) return;
             
-            const buildHtml = (obj) => {
-                let html = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Nama</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
-                for (let key in obj) {
-                    html += `<tr class="border-b last:border-none"><td class="py-2 font-medium text-gray-700">${key}</td><td class="py-2 text-right font-bold text-blue-600">${obj[key].lapor} <span class="text-gray-400 font-normal">/ ${obj[key].total}</span></td></tr>`;
-                }
-                html += '</tbody></table>';
-                return html;
-            };
+            let htmlGabungan = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Nama Jurusan / Jalur</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
+            
+            for (let key in stats.jurusan) {
+                htmlGabungan += `<tr class="border-b"><td class="py-2 font-medium text-gray-700">${key}</td><td class="py-2 text-right font-bold text-blue-600">${stats.jurusan[key].lapor} <span class="text-gray-400 font-normal">/ ${stats.jurusan[key].total}</span></td></tr>`;
+            }
+            
+            for (let key in stats.jalur) {
+                htmlGabungan += `<tr class="border-b last:border-none"><td class="py-2 font-medium text-gray-600 italic">${key}</td><td class="py-2 text-right font-bold text-blue-600">${stats.jalur[key].lapor} <span class="text-gray-400 font-normal">/ ${stats.jalur[key].total}</span></td></tr>`;
+            }
+            htmlGabungan += '</tbody></table>';
 
-            document.getElementById('statsJurusan').innerHTML = buildHtml(stats.jurusan);
-            document.getElementById('statsJalur').innerHTML = buildHtml(stats.jalur);
-            document.getElementById('statsRuang').innerHTML = buildHtml(stats.ruang);
+            let htmlRuang = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Nama Ruang</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
+            for (let key in stats.ruang) {
+                htmlRuang += `<tr class="border-b last:border-none"><td class="py-2 font-medium text-gray-700">${key}</td><td class="py-2 text-right font-bold text-blue-600">${stats.ruang[key].lapor} <span class="text-gray-400 font-normal">/ ${stats.ruang[key].total}</span></td></tr>`;
+            }
+            htmlRuang += '</tbody></table>';
+
+            document.getElementById('statsGabungan').innerHTML = htmlGabungan;
+            document.getElementById('statsRuang').innerHTML = htmlRuang;
             statsContainer.classList.remove('hidden');
         }
 
@@ -183,209 +186,4 @@
 
                 const label = document.createElement('label');
                 label.htmlFor = `check_${index}`;
-                label.className = 'text-sm font-bold text-gray-700 cursor-pointer select-none text-xs';
-                label.innerText = headerName;
-
-                div.appendChild(input);
-                div.appendChild(label);
-
-            } else {
-                const label = document.createElement('label');
-                label.className = 'text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
-                label.innerText = headerName;
-                div.appendChild(label);
-
-                if (nameLower === 'ukuran') {
-                    input = document.createElement('select');
-                    input.name = `col_${index}`;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition cursor-pointer h-[42px]';
-                    
-                    const listUkuran = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-                    const defaultOpt = document.createElement('option');
-                    defaultOpt.value = '';
-                    defaultOpt.innerText = '-- Pilih --';
-                    input.appendChild(defaultOpt);
-
-                    listUkuran.forEach(uk => {
-                        const opt = document.createElement('option');
-                        opt.value = uk;
-                        opt.innerText = uk;
-                        if (rawValue.toString().toUpperCase() === uk) {
-                            opt.selected = true;
-                        }
-                        input.appendChild(opt);
-                    });
-
-                } else if (nameLower === 'tanggal lahir') {
-                    input = document.createElement('input');
-                    input.type = 'date';
-                    input.name = `col_${index}`;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition h-[42px]';
-                    
-                    if (rawValue && rawValue.toString().includes('T')) {
-                        input.value = rawValue.toString().split('T')[0];
-                    } else if (rawValue) {
-                        const d = new Date(rawValue);
-                        if (!isNaN(d.getTime())) {
-                            input.value = d.toISOString().split('T')[0];
-                        } else {
-                            input.value = rawValue;
-                        }
-                    } else {
-                        input.value = '';
-                    }
-
-                } else {
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.name = `col_${index}`;
-                    input.value = nameLower === 'nisn' && rawValue.toString().startsWith("'") ? rawValue.toString().substring(1) : rawValue;
-                    input.className = 'px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 text-sm bg-gray-50 focus:bg-white transition h-[42px]';
-
-                    if (nameLower === 'nama' || nameLower === 'nisn' || nameLower === 'ruang' || nameLower === 'jurusan' || nameLower === 'jalur') {
-                        input.readOnly = true;
-                        input.classList.add('bg-gray-200', 'cursor-not-allowed', 'text-gray-500');
-                    }
-                }
-
-                if (!input.readOnly) {
-                    checkEmptyStatus(input);
-                    input.addEventListener('input', (e) => checkEmptyStatus(e.target));
-                    input.addEventListener('change', (e) => checkEmptyStatus(e.target));
-                }
-                
-                div.appendChild(input);
-            }
-            return div;
-        }
-
-        btnCari.addEventListener('click', () => {
-            const namaKetik = searchInput.value.trim().toLowerCase();
-            
-            if (namaKetik === '') {
-                alert('Pilih nama dari dropdown.');
-                return;
-            }
-
-            if (!terpilihSiswa) {
-                const cocok = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
-                if (cocok) {
-                    terpilihSiswa = cocok;
-                } else {
-                    alert('Pilih nama dari dropdown.');
-                    return;
-                }
-            }
-
-            formEl.innerHTML = '';
-            statsContainer.classList.add('hidden');
-
-            const headerMap = {};
-            headersData.forEach((header, index) => {
-                headerMap[header.toLowerCase()] = index;
-            });
-
-            const customOrder = [
-                'lapor diri', 'daftar ulang',
-                'grup whatsapp', 'nomor hp',
-                'nama',
-                'jenis kelamin', 'ukuran',
-                'nisn', 'ruang',
-                'jurusan', 'jalur',
-                'sekolah asal', 'tahun lulus',
-                'tempat lahir', 'tanggal lahir',
-                'rt', 'rw',
-                'desa/kelurahan', 'kecamatan',
-                'kabupaten/kota', 'provinsi'
-            ];
-
-            customOrder.forEach(headerName => {
-                if (headerMap[headerName] !== undefined) {
-                    const el = createInputElement(headersData[headerMap[headerName]], headerMap[headerName]);
-                    formEl.appendChild(el);
-                }
-            });
-
-            formContainer.classList.remove('hidden');
-            formContainer.scrollIntoView({ behavior: 'smooth' });
-        });
-
-        btnSimpan.addEventListener('click', () => {
-            if (!terpilihSiswa) return;
-
-            if(!confirm('Lanjut menyimpan perubahan data untuk ' + terpilihSiswa.nama + '?')) {
-                return;
-            }
-
-            btnSimpan.disabled = true;
-            btnSimpan.innerText = 'Menyimpan...';
-            showNotification('Mengirimkan data ke Google Sheet...', 'blue');
-
-            const payloadRowData = [];
-            headersData.forEach((header, index) => {
-                const nameLower = header.toLowerCase();
-                
-                if (nameLower === 'no') {
-                    payloadRowData.push(terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '');
-                } else {
-                    const element = formEl.elements[`col_${index}`];
-                    
-                    if (!element) {
-                        payloadRowData.push(terpilihSiswa.dataLengkap[index] !== undefined ? terpilihSiswa.dataLengkap[index] : '');
-                    } else if (nameLower === 'lapor diri' || nameLower === 'daftar ulang' || nameLower === 'grup whatsapp') {
-                        payloadRowData.push(element.checked);
-                    } else if (nameLower === 'nisn') {
-                        let cleanNisn = element.value.toString().trim();
-                        payloadRowData.push("'" + cleanNisn);
-                    } else {
-                        payloadRowData.push(element.value);
-                    }
-                }
-            });
-
-            const bodyRequest = {
-                rowNum: terpilihSiswa.rowNum,
-                rowData: payloadRowData
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify(bodyRequest)
-            })
-            .then(res => res.json())
-            .then(res => {
-                btnSimpan.disabled = false;
-                btnSimpan.innerText = 'Simpan';
-                
-                if (res.status === 'SUCCESS') {
-                    showNotification('Selamat! Data berhasil diperbarui. Halaman akan dimuat ulang...', 'green');
-                    
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    showNotification('Gagal memperbarui data: ' + res.message, 'red');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                btnSimpan.disabled = false;
-                btnSimpan.innerText = 'Simpan';
-                showNotification('Terjadi kesalahan jaringan.', 'red');
-            });
-        });
-
-        showNotification = (text, color) => {
-            notif.innerText = text;
-            notif.className = 'p-4 mb-6 rounded-sm text-sm font-medium block ';
-            if(color === 'blue') notif.classList.add('bg-blue-50', 'text-blue-700', 'border', 'border-blue-200');
-            if(color === 'green') notif.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
-            if(color === 'red') notif.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
-        }
-
-        hideNotification = () => {
-            notif.classList.add('hidden');
-        }
-    </script>
-</body>
-</html>
+                label
