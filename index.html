@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Ulang SPMB</title>
+    <title>Form Daftar Ulang Siswa</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .search-results { max-height: 200px; overflow-y: auto; }
@@ -29,6 +29,21 @@
         </div>
 
         <div id="notif" class="hidden p-4 mb-6 rounded-sm text-sm font-medium"></div>
+
+        <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 hidden">
+            <div class="bg-white p-4 shadow-md rounded-sm">
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Jurusan</h3>
+                <div id="statsJurusan" class="text-xs space-y-2"></div>
+            </div>
+            <div class="bg-white p-4 shadow-md rounded-sm">
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Jalur</h3>
+                <div id="statsJalur" class="text-xs space-y-2"></div>
+            </div>
+            <div class="bg-white p-4 shadow-md rounded-sm">
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3">Statistik Ruang</h3>
+                <div id="statsRuang" class="text-xs space-y-2"></div>
+            </div>
+        </div>
 
         <div id="formContainer" class="hidden bg-white rounded-sm shadow-md p-6">
             <form id="daftarUlangForm" class="grid grid-cols-2 gap-6">
@@ -56,6 +71,7 @@
         const formEl = document.getElementById('daftarUlangForm');
         const btnSimpan = document.getElementById('btnSimpan');
         const notif = document.getElementById('notif');
+        const statsContainer = document.getElementById('statsContainer');
 
         window.addEventListener('DOMContentLoaded', () => {
             showNotification('Loading....', 'blue');
@@ -65,12 +81,31 @@
                     masterSiswaData = data.siswa;
                     headersData = data.headers;
                     hideNotification();
+                    renderDashboardStats(data.stats);
                 })
                 .catch(err => {
                     console.error(err);
                     showNotification('Error.', 'red');
                 });
         });
+
+        function renderDashboardStats(stats) {
+            if (!stats) return;
+            
+            const buildHtml = (obj) => {
+                let html = '<table class="w-full text-left border-collapse"><thead><tr class="text-gray-500 border-b"><th class="pb-1 font-semibold">Nama</th><th class="pb-1 text-right font-semibold">Lapor / Total</th></tr></thead><tbody>';
+                for (let key in obj) {
+                    html += `<tr class="border-b last:border-none"><td class="py-2 font-medium text-gray-700">${key}</td><td class="py-2 text-right font-bold text-blue-600">${obj[key].lapor} <span class="text-gray-400 font-normal">/ ${obj[key].total}</span></td></tr>`;
+                }
+                html += '</tbody></table>';
+                return html;
+            };
+
+            document.getElementById('statsJurusan').innerHTML = buildHtml(stats.jurusan);
+            document.getElementById('statsJalur').innerHTML = buildHtml(stats.jalur);
+            document.getElementById('statsRuang').innerHTML = buildHtml(stats.ruang);
+            statsContainer.classList.remove('hidden');
+        }
 
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase().trim();
@@ -228,7 +263,7 @@
             const namaKetik = searchInput.value.trim().toLowerCase();
             
             if (namaKetik === '') {
-                alert('Ketik nama siswa terlebih dahulu.');
+                alert('Pilih nama dari dropdown.');
                 return;
             }
 
@@ -243,6 +278,7 @@
             }
 
             formEl.innerHTML = '';
+            statsContainer.classList.add('hidden');
 
             const headerMap = {};
             headersData.forEach((header, index) => {
@@ -322,18 +358,11 @@
                 btnSimpan.innerText = 'Simpan';
                 
                 if (res.status === 'SUCCESS') {
-                    showNotification('Selamat! Data berhasil diperbarui.', 'green');
-                    
-                    terpilihSiswa.dataLengkap = payloadRowData;
-                    const idx = masterSiswaData.findIndex(s => s.rowNum === terpilihSiswa.rowNum);
-                    if(idx !== -1) masterSiswaData[idx].dataLengkap = payloadRowData;
+                    showNotification('Selamat! Data berhasil diperbarui. Halaman akan dimuat ulang...', 'green');
                     
                     setTimeout(() => {
-                        formContainer.classList.add('hidden');
-                        searchInput.value = '';
-                        terpilihSiswa = null;
-                        hideNotification();
-                    }, 3000);
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     showNotification('Gagal memperbarui data: ' + res.message, 'red');
                 }
