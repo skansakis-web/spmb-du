@@ -43,13 +43,13 @@
             </div>
 
             <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-red-600">Daftar Siswa Belum Lapor Diri (Jalur Utama)</h3>
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-red-600">Daftar Siswa Tidak Daftar Ulang</h3>
                 <div id="belumLaporContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
                 </div>
             </div>
 
             <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-orange-600">Daftar Siswa Belum Lapor Diri (Jalur Cadangan)</h3>
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-orange-600">Daftar Siswa Belum Daftar Ulang (Cadangan)</h3>
                 <div id="tidakDuContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
                 </div>
             </div>
@@ -114,7 +114,15 @@
                 for (let jlrName in dataJurusan.jalur) {
                     let dataJalur = dataJurusan.jalur[jlrName];
                     let belumLaporJlr = dataJalur.total - dataJalur.lapor;
-                    htmlGabungan += `<tr class="border-b last:border-none text-[12px]"><td class="py-1.5 pl-5 text-gray-600 italic font-medium">${jlrName}</td><td class="py-1.5 text-center text-gray-500">${dataJalur.total}</td><td class="py-1.5 text-center font-semibold text-green-600">${dataJalur.lapor}</td><td class="py-1.5 text-center font-semibold text-red-500">${belumLaporJlr}</td></tr>`;
+                    
+                    let rowStyle = "";
+                    if (jlrName.toLowerCase().trim() === 'cadangan') {
+                        rowStyle = "bg-orange-50/50 font-semibold border-t border-dashed border-orange-200 text-orange-700";
+                    } else {
+                        rowStyle = "text-[12px]";
+                    }
+                    
+                    htmlGabungan += `<tr class="border-b last:border-none ${rowStyle}"><td class="py-1.5 pl-5 text-gray-600 italic font-medium">${jlrName}</td><td class="py-1.5 text-center">${dataJalur.total}</td><td class="py-1.5 text-center font-semibold text-green-600">${dataJalur.lapor}</td><td class="py-1.5 text-center font-semibold text-red-500">${belumLaporJlr}</td></tr>`;
                 }
             }
             htmlGabungan += '</tbody></table>';
@@ -350,16 +358,6 @@
             if (namaKetik === '') {
                 alert('Pilih nama dari dropdown.');
                 return;
-            }
-
-            if (!terpilihSiswa) {
-                constしかった = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
-                if (しかった) {
-                    terpilihSiswa = しかった;
-                } else {
-                    alert('Pilih nama dari dropdown.');
-                    return;
-                }
             }
 
             formEl.innerHTML = '';
