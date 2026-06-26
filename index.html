@@ -43,13 +43,13 @@
             </div>
 
             <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-red-600">Daftar Siswa Belum Lapor Diri</h3>
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-red-600">Daftar Siswa Belum Lapor Diri (Jalur Utama)</h3>
                 <div id="belumLaporContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
                 </div>
             </div>
 
             <div class="bg-white p-4 shadow-md rounded-sm">
-                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-orange-600">Daftar Siswa Tidak Daftar Ulang</h3>
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-orange-600">Daftar Siswa Belum Lapor Diri (Jalur Cadangan)</h3>
                 <div id="tidakDuContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
                 </div>
             </div>
@@ -134,25 +134,25 @@
 
         function renderRekapSiswaLists() {
             const idxJurusan = headersData.map(h => h.toLowerCase()).indexOf('jurusan');
+            const idxJalur = headersData.map(h => h.toLowerCase()).indexOf('jalur');
             const idxLapor = headersData.map(h => h.toLowerCase()).indexOf('lapor diri');
-            const idxDu = headersData.map(h => h.toLowerCase()).indexOf('daftar ulang');
             
             const kelompokBelumLapor = {};
             const kelompokTidakDu = {};
             
             masterSiswaData.forEach(s => {
                 const jrs = s.dataLengkap[idxJurusan] || "TANPA JURUSAN";
+                const jlr = (s.dataLengkap[idxJalur] || "").toString().toLowerCase().trim();
                 const isLapor = s.dataLengkap[idxLapor] === true || s.dataLengkap[idxLapor].toString().toLowerCase() === 'true';
-                const isDu = s.dataLengkap[idxDu] === true || s.dataLengkap[idxDu].toString().toLowerCase() === 'true';
                 
                 if (!isLapor) {
-                    if (!kelompokBelumLapor[jrs]) kelompokBelumLapor[jrs] = [];
-                    kelompokBelumLapor[jrs].push(s.nama);
-                }
-                
-                if (!isDu) {
-                    if (!kelompokTidakDu[jrs]) kelompokTidakDu[jrs] = [];
-                    kelompokTidakDu[jrs].push(s.nama);
+                    if (jlr === 'cadangan') {
+                        if (!kelompokTidakDu[jrs]) kelompokTidakDu[jrs] = [];
+                        kelompokTidakDu[jrs].push(s.nama);
+                    } else {
+                        if (!kelompokBelumLapor[jrs]) kelompokBelumLapor[jrs] = [];
+                        kelompokBelumLapor[jrs].push(s.nama);
+                    }
                 }
             });
 
@@ -353,9 +353,9 @@
             }
 
             if (!terpilihSiswa) {
-                const cocok = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
-                if (cocok) {
-                    terpilihSiswa = cocok;
+                constしかった = masterSiswaData.find(s => s.nama.toLowerCase() === namaKetik);
+                if (しかった) {
+                    terpilihSiswa = しかった;
                 } else {
                     alert('Pilih nama dari dropdown.');
                     return;
