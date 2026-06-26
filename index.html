@@ -47,6 +47,12 @@
                 <div id="belumLaporContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
                 </div>
             </div>
+
+            <div class="bg-white p-4 shadow-md rounded-sm">
+                <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-3 text-orange-600">Daftar Siswa Tidak Daftar Ulang</h3>
+                <div id="tidakDuContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs mt-2">
+                </div>
+            </div>
         </div>
 
         <div id="formContainer" class="hidden bg-white rounded-sm shadow-md p-6">
@@ -86,7 +92,7 @@
                     headersData = data.headers;
                     hideNotification();
                     renderDashboardStats(data.stats);
-                    renderBelumLaporList();
+                    renderRekapSiswaLists();
                 })
                 .catch(err => {
                     console.error(err);
@@ -126,53 +132,64 @@
             statsSection.classList.remove('hidden');
         }
 
-        function renderBelumLaporList() {
+        function renderRekapSiswaLists() {
             const idxJurusan = headersData.map(h => h.toLowerCase()).indexOf('jurusan');
             const idxLapor = headersData.map(h => h.toLowerCase()).indexOf('lapor diri');
+            const idxDu = headersData.map(h => h.toLowerCase()).indexOf('daftar ulang');
             
             const kelompokBelumLapor = {};
+            const kelompokTidakDu = {};
             
             masterSiswaData.forEach(s => {
                 const jrs = s.dataLengkap[idxJurusan] || "TANPA JURUSAN";
                 const isLapor = s.dataLengkap[idxLapor] === true || s.dataLengkap[idxLapor].toString().toLowerCase() === 'true';
+                const isDu = s.dataLengkap[idxDu] === true || s.dataLengkap[idxDu].toString().toLowerCase() === 'true';
                 
                 if (!isLapor) {
-                    if (!kelompokBelumLapor[jrs]) {
-                        kelompokBelumLapor[jrs] = [];
-                    }
+                    if (!kelompokBelumLapor[jrs]) kelompokBelumLapor[jrs] = [];
                     kelompokBelumLapor[jrs].push(s.nama);
+                }
+                
+                if (!isDu) {
+                    if (!kelompokTidakDu[jrs]) kelompokTidakDu[jrs] = [];
+                    kelompokTidakDu[jrs].push(s.nama);
                 }
             });
 
-            const container = document.getElementById('belumLaporContainer');
-            container.innerHTML = '';
+            const buildListHtml = (containerId, dataGroup, badgeColor) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                for (let jrsName in dataGroup) {
+                    const divJrs = document.createElement('div');
+                    divJrs.className = 'border border-gray-200 p-3 bg-gray-50 rounded-sm';
 
-            for (let jrsName in kelompokBelumLapor) {
-                const divJrs = document.createElement('div');
-                divJrs.className = 'border border-gray-200 p-3 bg-gray-50 rounded-sm';
+                    const title = document.createElement('h4');
+                    title.className = 'font-bold uppercase text-gray-700 border-b pb-1 mb-2 text-[11px] tracking-wide flex justify-between';
+                    title.innerHTML = `<span>${jrsName}</span> <span class="${badgeColor} px-1.5 py-0.2 rounded-sm">${dataGroup[jrsName].length} Siswa</span>`;
+                    divJrs.appendChild(title);
 
-                const title = document.createElement('h4');
-                title.className = 'font-bold uppercase text-gray-700 border-b pb-1 mb-2 text-[11px] tracking-wide flex justify-between';
-                title.innerHTML = `<span>${jrsName}</span> <span class="text-red-600 bg-red-100 px-1.5 py-0.2 rounded-sm">${kelompokBelumLapor[jrsName].length} Siswa</span>`;
-                divJrs.appendChild(title);
+                    const listOl = document.createElement('ol');
+                    listOl.className = 'list-decimal list-inside space-y-1 pr-1 text-gray-600';
 
-                const listOl = document.createElement('ol');
-                listOl.className = 'list-decimal list-inside space-y-1 pr-1 text-gray-600';
+                    dataGroup[jrsName].sort().forEach(namaSiswa => {
+                        const li = document.createElement('li');
+                        li.className = 'truncate border-b border-gray-100 last:border-none py-0.5';
+                        li.innerText = namaSiswa;
+                        listOl.appendChild(li);
+                    });
 
-                kelompokBelumLapor[jrsName].sort().forEach(namaSiswa => {
-                    const li = document.createElement('li');
-                    li.className = 'truncate border-b border-gray-100 last:border-none py-0.5';
-                    li.innerText = namaSiswa;
-                    listOl.appendChild(li);
-                });
+                    divJrs.appendChild(listOl);
+                    container.appendChild(divJrs);
+                }
 
-                divJrs.appendChild(listOl);
-                container.appendChild(divJrs);
-            }
+                if (Object.keys(dataGroup).length === 0) {
+                    container.innerHTML = '<div class="col-span-full text-center py-4 font-medium text-green-600 bg-green-50 border border-green-200 rounded-sm">Semua data siswa telah terpenuhi!</div>';
+                }
+            };
 
-            if (Object.keys(kelompokBelumLapor).length === 0) {
-                container.innerHTML = '<div class="col-span-full text-center py-4 font-medium text-green-600 bg-green-50 border border-green-200 rounded-sm">Semua siswa dari semua jurusan telah lapor diri!</div>';
-            }
+            buildListHtml('belumLaporContainer', kelompokBelumLapor, 'text-red-600 bg-red-100');
+            buildListHtml('tidakDuContainer', kelompokTidakDu, 'text-orange-600 bg-orange-100');
         }
 
         searchInput.addEventListener('input', (e) => {
